@@ -292,6 +292,10 @@ async function gate(msg: Message): Promise<GateResult> {
 async function isMentioned(msg: Message, extraPatterns?: string[]): Promise<boolean> {
   if (client.user && msg.mentions.has(client.user)) return true
 
+  // @everyone / @here are not user mentions — Discord.js sets everyone separately.
+  if (msg.mentions.everyone) return true
+  if (/\B@here\b/i.test(msg.content)) return true
+
   // Reply to one of our messages counts as an implicit mention.
   const refId = msg.reference?.messageId
   if (refId) {

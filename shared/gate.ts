@@ -25,6 +25,10 @@ async function isMentioned(
 ): Promise<boolean> {
   if (client.user && msg.mentions.has(client.user)) return true
 
+  // @everyone / @here are not user mentions — Discord.js sets everyone separately.
+  if (msg.mentions.everyone) return true
+  if (/\B@here\b/i.test(msg.content)) return true
+
   const refId = msg.reference?.messageId
   if (refId) {
     if (recentSentIds.has(refId)) return true
