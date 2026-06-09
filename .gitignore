@@ -1,0 +1,6 @@
+node_modules/
+mcp/server.ts.upstream-fork.ts
+dist/
+.env
+*.log
+.DS_Store

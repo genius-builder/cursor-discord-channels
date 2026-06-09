@@ -1,0 +1,11 @@
+{
+  "name": "discord-channels",
+  "version": "0.1.0",
+  "description": "Always-on Discord agents for Cursor — self-hosted bridge + MCP (droplet-ready)",
+  "author": { "name": "lilyzhng" },
+  "repository": "https://github.com/lilyzhng/cursor-discord-channels",
+  "license": "MIT",
+  "keywords": ["discord", "bridge", "headless", "droplet", "mcp"],
+  "mcpServers": "./examples/mcp.json",
+  "skills": "./skills/discord-access"
+}

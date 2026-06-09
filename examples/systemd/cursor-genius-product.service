@@ -1,0 +1,30 @@
+[Unit]
+Description=Jackie (genius-product) via Cursor Discord bridge
+After=network-online.target
+Wants=network-online.target
+Conflicts=genius-product.service
+
+[Service]
+Type=simple
+User=genius
+Group=genius
+WorkingDirectory=/home/genius/cursor-discord-channels
+EnvironmentFile=/etc/genius-team/shared.env
+EnvironmentFile=-/home/genius/GeniusTeam/genius-product/.env
+# shared.env sets PATH without ~/.local/bin (agent); clear and replace.
+UnsetEnvironment=PATH
+Environment=CDC_STATE_DIR=/home/genius/.cursor/channels/discord-jackie
+Environment=CURSOR_CWD=/home/genius/worktrees-gt/genius-product
+Environment=CURSOR_MODEL=composer-2.5
+Environment=CDC_AGENT_BIN=/home/genius/.local/bin/agent
+Environment=PATH=/home/genius/.local/share/fnm/aliases/default/bin:/home/genius/.local/bin:/home/genius/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin
+ExecStartPre=/bin/bash /home/genius/cursor-discord-channels/scripts/sync-discord-mcp.sh
+ExecStart=/home/genius/.local/share/fnm/aliases/default/bin/node /home/genius/cursor-discord-channels/node_modules/tsx/dist/cli.mjs bridge/daemon.ts
+Restart=on-failure
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cursor-genius-product
+
+[Install]
+WantedBy=multi-user.target
