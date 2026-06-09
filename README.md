@@ -28,7 +28,28 @@ Cursor has Discord MCP tools in the IDE (ported from `claude-plugins-official`),
 
 ## Status
 
-**Planning** — no implementation yet. See [PLAN.md](PLAN.md) for MVP scope.
+**MVP in progress** — bridge daemon + ported MCP server. Phase 0 droplet validation pending.
+
+### Quick start (local)
+
+```bash
+git clone https://github.com/lilyzhng/cursor-discord-channels.git
+cd cursor-discord-channels
+npm install
+
+# ~/.cursor/channels/discord/.env
+# DISCORD_BOT_TOKEN=...
+# CURSOR_API_KEY=...
+
+# Copy MCP config into your agent repo
+cp examples/mcp.json /path/to/your-repo/.cursor/mcp.json
+# Edit cwd in mcp.json to this repo path
+
+export CURSOR_CWD=/path/to/your-repo
+npm run bridge
+```
+
+See [PLAN.md](PLAN.md) for phases.
 
 ## Related
 

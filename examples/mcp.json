@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "discord": {
+      "command": "npm",
+      "args": ["run", "mcp"],
+      "cwd": "/home/genius/cursor-discord-channels",
+      "env": {}
+    }
+  }
+}

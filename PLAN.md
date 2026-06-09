@@ -40,7 +40,14 @@ Same mental model as `claude --channels plugin:discord`, but for Cursor.
 
 ---
 
-### Phase 1 — MVP bridge (1 week)
+### Phase 1 — MVP bridge (1 week) 🚧 IN PROGRESS
+
+**Shipped in repo (2026-06-09):**
+- `shared/` access + gate + inbound formatting
+- `bridge/daemon.ts` — Discord → `cursor agent -p`
+- `mcp/server.ts` — ported fork, `CDC_MCP_ONLY=1` for tool-only mode
+- `examples/mcp.json`, systemd unit, sync script skeleton
+
 
 **Minimal inbound: Discord message → spawn agent → reply.**
 

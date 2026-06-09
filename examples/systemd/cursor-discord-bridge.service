@@ -1,0 +1,18 @@
+[Unit]
+Description=Cursor Discord bridge (genius-builder)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=genius
+WorkingDirectory=/home/genius/cursor-discord-channels
+EnvironmentFile=/home/genius/.cursor/channels/discord/.env
+Environment=CURSOR_CWD=/home/genius/worktrees-gt/genius-builder
+Environment=CURSOR_MODEL=composer-2.5
+ExecStart=/usr/bin/npm run bridge
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
