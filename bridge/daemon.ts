@@ -4,13 +4,7 @@
  * Discord message → access gate → cursor agent -p → agent replies via MCP.
  */
 
-import {
-  ChannelType,
-  Client,
-  GatewayIntentBits,
-  Partials,
-  type Message,
-} from 'discord.js'
+import { Client, GatewayIntentBits, Partials, type Message } from 'discord.js'
 import {
   loadAccess,
   reconcileTrustedBots,
@@ -20,19 +14,16 @@ import { loadStateEnv } from '../shared/env.js'
 import { buildAgentPrompt, formatChannelBlock } from '../shared/format-inbound.js'
 import { gate } from '../shared/gate.js'
 import { ENV_FILE } from '../shared/paths.js'
+import { ensureCursorSubscriptionAuth } from './auth.js'
 import { runCursorAgent } from './run-agent.js'
 
 loadStateEnv()
 reconcileTrustedBots()
+ensureCursorSubscriptionAuth()
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN
 if (!TOKEN) {
   process.stderr.write(`bridge: DISCORD_BOT_TOKEN required (set in ${ENV_FILE})\n`)
-  process.exit(1)
-}
-
-if (!process.env.CURSOR_API_KEY) {
-  process.stderr.write('bridge: CURSOR_API_KEY required for headless cursor agent\n')
   process.exit(1)
 }
 

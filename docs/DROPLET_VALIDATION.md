@@ -6,7 +6,7 @@
 ## Checklist
 
 - [ ] Cursor CLI installed
-- [ ] `CURSOR_API_KEY` set
+- [ ] `cursor agent login` done (subscription — see [AUTH.md](AUTH.md))
 - [ ] Discord MCP configured in `~/.cursor/mcp.json`
 - [ ] Headless agent calls `reply` tool successfully
 - [ ] Flags documented: `--yolo`, `--approve-mcps`, `--resume`
@@ -18,7 +18,7 @@
 cursor agent --version
 
 # 2. Smoke test
-export CURSOR_API_KEY=...
+cursor agent status   # must show logged in
 cd ~/GeniusTeam/genius-builder
 cursor agent -p --yolo --approve-mcps \
   "Use the discord reply tool to send 'cursor bridge test ok' to channel <CHAT_ID>"

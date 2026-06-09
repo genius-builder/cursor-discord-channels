@@ -30,7 +30,7 @@ Same mental model as `claude --channels plugin:discord`, but for Cursor.
 | # | Task | Done when |
 |---|------|-----------|
 | 0.1 | Install Cursor CLI on `genius-team-v2` droplet | `cursor agent --version` works |
-| 0.2 | Set `CURSOR_API_KEY` on droplet | Auth succeeds |
+| 0.2 | `cursor agent login` on droplet (subscription OAuth) | `cursor agent status` shows logged in |
 | 0.3 | Run headless agent with Discord MCP | `cursor agent -p --yolo --approve-mcps "reply to channel X with pong"` uses `reply` tool |
 | 0.4 | Document CLI flags that work | Note in `docs/DROPLET_VALIDATION.md` |
 
@@ -188,7 +188,7 @@ Run **Phase 0** on the droplet: validate `cursor agent -p` + Discord MCP end-to-
 
 ```bash
 # On genius-team-v2 (after Cursor CLI install)
-export CURSOR_API_KEY=...
+cursor agent login   # once — subscription, not API key
 cd ~/GeniusTeam/genius-builder
 cursor agent -p --yolo --approve-mcps \
   "Use the discord reply tool to send 'cursor bridge test ok' to channel CHAT_ID"

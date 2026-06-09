@@ -32,6 +32,7 @@ export function runCursorAgent(opts: RunAgentOptions): Promise<RunAgentResult> {
     '-p',
     '--yolo',
     '--approve-mcps',
+    '--trust',
     '--output-format',
     'text',
     '--model',

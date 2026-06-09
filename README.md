@@ -39,7 +39,8 @@ npm install
 
 # ~/.cursor/channels/discord/.env
 # DISCORD_BOT_TOKEN=...
-# CURSOR_API_KEY=...
+
+cursor agent login   # subscription OAuth — NOT API key (see docs/AUTH.md)
 
 # Copy MCP config into your agent repo
 cp examples/mcp.json /path/to/your-repo/.cursor/mcp.json

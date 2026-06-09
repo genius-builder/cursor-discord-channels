@@ -99,7 +99,7 @@ State file: `~/.cursor/channels/discord/access.json`
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `DISCORD_BOT_TOKEN` | Yes | Bot token |
-| `CURSOR_API_KEY` | Yes | Cursor API key for headless agent |
+| Cursor subscription | Yes | `cursor agent login` (OAuth). API key is CI-only fallback. |
 | `CURSOR_CWD` | Yes | Repo root (e.g. genius-builder worktree) |
 | `CURSOR_MODEL` | No | Default `composer-2.5` |
 | `DISCORD_STATE_DIR` | No | Default `~/.cursor/channels/discord` |

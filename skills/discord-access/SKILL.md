@@ -37,7 +37,8 @@ Run `npm run sync-mcp` to reconcile trustedBots into allowFrom.
 
 ```
 DISCORD_BOT_TOKEN=...
-CURSOR_API_KEY=...
 ```
+
+Cursor auth: `cursor agent login` (subscription). Do **not** use API key for always-on agents — see `docs/AUTH.md`.
 
 Bridge also reads `CURSOR_CWD` (agent repo root).
