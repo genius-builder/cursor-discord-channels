@@ -2,8 +2,9 @@ import { existsSync } from 'fs'
 import { homedir } from 'os'
 import { join } from 'path'
 
-/** Prefer ~/.cursor; fall back to ~/.claude for GeniusTeam migration. */
+/** Per-agent override, e.g. CDC_STATE_DIR=~/.cursor/channels/discord-jackie */
 export function stateDir(): string {
+  if (process.env.CDC_STATE_DIR) return process.env.CDC_STATE_DIR
   const cursor = join(homedir(), '.cursor', 'channels', 'discord')
   const claude = join(homedir(), '.claude', 'channels', 'discord')
   if (existsSync(join(cursor, '.env')) || existsSync(join(cursor, 'access.json'))) {

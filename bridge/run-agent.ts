@@ -1,5 +1,5 @@
-import { spawn } from 'child_process'
 import { getSessionId, setSessionId } from './sessions.js'
+import { spawnAgent } from './cursor-bin.js'
 
 export type RunAgentOptions = {
   cwd: string
@@ -28,7 +28,6 @@ export function runCursorAgent(opts: RunAgentOptions): Promise<RunAgentResult> {
   const existing = getSessionId(opts.chatId)
 
   const args = [
-    'agent',
     '-p',
     '--yolo',
     '--approve-mcps',
@@ -39,12 +38,13 @@ export function runCursorAgent(opts: RunAgentOptions): Promise<RunAgentResult> {
     model,
   ]
   if (existing) args.push('--resume', existing)
+  args.push('--workspace', opts.cwd)
   args.push(opts.prompt)
 
   return new Promise((resolve, reject) => {
-    const child = spawn('cursor', args, {
+    const child = spawnAgent('', args, {
       cwd: opts.cwd,
-      env: process.env,
+      env: { ...process.env, CURSOR_CWD: opts.cwd },
       stdio: ['ignore', 'pipe', 'pipe'],
     })
 

@@ -1,0 +1,27 @@
+[Unit]
+Description=Jackie (genius-product) via Cursor Discord bridge
+After=network-online.target
+Wants=network-online.target
+Conflicts=genius-product.service
+
+[Service]
+Type=simple
+User=genius
+Group=genius
+WorkingDirectory=/home/genius/cursor-discord-channels
+EnvironmentFile=/etc/genius-team/shared.env
+EnvironmentFile=-/home/genius/GeniusTeam/genius-product/.env
+Environment=CDC_STATE_DIR=/home/genius/.cursor/channels/discord-jackie
+Environment=CURSOR_CWD=/home/genius/worktrees-gt/genius-product
+Environment=CURSOR_MODEL=composer-2.5
+Environment=PATH=/home/genius/.local/bin:/usr/bin:/bin
+ExecStartPre=/bin/bash /home/genius/cursor-discord-channels/scripts/sync-discord-mcp.sh
+ExecStart=/usr/bin/npm run bridge
+Restart=on-failure
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cursor-genius-product
+
+[Install]
+WantedBy=multi-user.target
