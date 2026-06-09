@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Claude Code --channels equivalent for Cursor agent on a droplet",
+  "description": "Cursor + Discord MCP + headless bridge for always-on agents on your server",
   "scripts": {
     "bridge": "tsx bridge/daemon.ts",
     "mcp": "CDC_MCP_ONLY=1 tsx mcp/server.ts",

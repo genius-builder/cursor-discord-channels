@@ -1,62 +1,59 @@
 # cursor-discord-channels
 
-**Claude Code `--channels plugin:discord` for Cursor** — always-on Discord agents on your own server (droplet, VPS, or local).
+**Talk to your Cursor agent in Discord — and have it talk back.**
 
-## Problem
+This project connects a **Cursor agent** to **Discord**, so your agent can live on a small always-on server and reply when people @mention it in a channel.
 
-[GeniusTeam](https://github.com/lilyzhng/GeniusTeam) runs four always-on agents (Bill, Lucy, Andrej, Jackie) on a DigitalOcean droplet via:
+## What you get
 
-```bash
-claude --channels plugin:discord@claude-plugins-official --dangerously-skip-permissions
+- **@mention your agent in Discord** and get a real reply in the thread
+- **An always-on assistant** that does not need your laptop open
+- **Uses your Cursor subscription** (not a separate API bill)
+- **You stay in control** — who can talk to the bot, which channels, pairing for new people
+
+Think of it as giving your Cursor agent a phone line into Discord.
+
+## How it works (simple)
+
+1. Someone tags your bot in Discord  
+2. A small **bridge** program on your server sees the message  
+3. It wakes up **Cursor agent** with that message  
+4. The agent answers using **Discord tools** (reply in the thread, react, read recent messages, etc.)
+
+```
+Discord  →  bridge  →  Cursor agent  →  Discord reply
 ```
 
-Cursor has Discord MCP tools in the IDE (ported from `claude-plugins-official`), but **no headless channels bridge** for `cursor agent` on a server. This repo fills that gap.
+## What you need
 
-## What exists vs what's missing
+| Thing | Why |
+|-------|-----|
+| A **Discord bot** | Your agent’s identity in Discord |
+| **Cursor agent** on the server | `agent login` once (your normal Cursor account) |
+| A **small server** that stays on | So the bridge can run 24/7 |
+| **Node.js** | To run this repo |
 
-| Layer | Status |
-|-------|--------|
-| Discord MCP (`reply`, `fetch_messages`, access control) | ✅ Port from [lilyzhng/claude-plugins-official](https://github.com/lilyzhng/claude-plugins-official) fork |
-| Inbound push (Discord → agent session) | ❌ **This repo** |
-| Headless `cursor agent -p` + MCP | ⚠️ Validate on droplet (`--yolo --approve-mcps`) |
-| Multi-agent fleet routing | 🔜 Phase 2 (port [fleet-discord](https://github.com/Agent-Crafting-Table/fleet-discord) ideas) |
-
-## Docs
-
-- [PLAN.md](PLAN.md) — phases, milestones, success criteria
-- [docs/REPLICATION_SPEC.md](docs/REPLICATION_SPEC.md) — architecture, components, API surface
-
-## Status
-
-**MVP in progress** — bridge daemon + ported MCP server. Phase 0 droplet validation pending.
-
-### Quick start (local)
+## Quick start
 
 ```bash
 git clone https://github.com/lilyzhng/cursor-discord-channels.git
 cd cursor-discord-channels
 npm install
-
-# ~/.cursor/channels/discord/.env
-# DISCORD_BOT_TOKEN=...
-
-cursor agent login   # subscription OAuth — NOT API key (see docs/AUTH.md)
-
-# Copy MCP config into your agent repo
-cp examples/mcp.json /path/to/your-repo/.cursor/mcp.json
-# Edit cwd in mcp.json to this repo path
-
-export CURSOR_CWD=/path/to/your-repo
-npm run bridge
 ```
 
-See [PLAN.md](PLAN.md) for phases.
+1. Create a Discord bot and put the token in `~/.cursor/channels/discord/.env`  
+   (`DISCORD_BOT_TOKEN=...`)
+2. Log in on the server: `agent login`
+3. Point the agent at your project folder (where your rules and context live)
+4. Start the bridge: `npm run bridge`
 
-## Related
+For a production setup (auto-restart on boot), see `examples/systemd/` and `docs/JACKIE_PILOT.md`.
 
-- Lily's Discord fork: [lilyzhng/claude-plugins-official](https://github.com/lilyzhng/claude-plugins-official) (`trustedBots`, `groups["*"]`)
-- GeniusTeam droplet setup: `GeniusTeam/scripts/sync-discord-plugin.sh`, `genius-builder.service`
-- Closest prior art: [cursor-claw](https://github.com/Agent-Crafting-Table/cursor-claw) (editor-first, slash commands — not drop-in)
+## More help
+
+- [docs/AUTH.md](docs/AUTH.md) — logging in with your Cursor subscription  
+- [docs/JACKIE_PILOT.md](docs/JACKIE_PILOT.md) — end-to-end setup notes from a real deployment  
+- [skills/discord-access/SKILL.md](skills/discord-access/SKILL.md) — who is allowed to DM or tag the bot  
 
 ## License
 
