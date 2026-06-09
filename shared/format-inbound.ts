@@ -1,4 +1,5 @@
 import type { Message } from 'discord.js'
+import { mentionPromptBlock } from './mentions.js'
 
 function safeAttName(name: string, id: string): string {
   return (name ?? id).replace(/[\[\]\r\n;]/g, '_')
@@ -11,19 +12,15 @@ export function formatChannelBlock(msg: Message): string {
     atts.push(`${safeAttName(att.name ?? '', att.id)} (${att.contentType ?? 'unknown'}, ${kb}KB)`)
   }
 
-  const resolved = msg.content.replace(/<@!?(\d+)>/g, (match, id) => {
-    const user = msg.mentions.users.get(id) ?? msg.client.users.cache.get(id)
-    return user ? `@${user.username}` : match
-  })
-
-  const content = resolved || (atts.length > 0 ? '(attachment)' : '')
+  // Keep <@snowflake> — converting to @username trains agents to ping wrong.
+  const content = msg.content.trim() || (atts.length > 0 ? '(attachment)' : '')
   const attAttrs =
     atts.length > 0
       ? ` attachment_count="${atts.length}" attachments="${atts.join('; ')}"`
       : ''
 
   return [
-    `<channel source="discord" chat_id="${msg.channelId}" message_id="${msg.id}" user="${msg.author.username}" ts="${msg.createdAt.toISOString()}"${attAttrs}>`,
+    `<channel source="discord" chat_id="${msg.channelId}" message_id="${msg.id}" user="${msg.author.username}" user_id="${msg.author.id}" ts="${msg.createdAt.toISOString()}"${attAttrs}>`,
     content,
     '</channel>',
   ].join('\n')
@@ -38,6 +35,10 @@ export function buildAgentPrompt(channelBlock: string): string {
     'Latency contract: send your FIRST discord reply immediately — short, conversational.',
     'Do not run shell, grep, or file reads before that first reply.',
     'If research is needed, reply first with a quick take, then follow up after reading.',
+    '',
+    mentionPromptBlock(),
+    '',
+    'To notify the sender, tag them with <@user_id> from the channel block or list above.',
     '',
     channelBlock,
   ].join('\n')
