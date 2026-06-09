@@ -44,7 +44,11 @@ export function runCursorAgent(opts: RunAgentOptions): Promise<RunAgentResult> {
   return new Promise((resolve, reject) => {
     const child = spawnAgent('', args, {
       cwd: opts.cwd,
-      env: { ...process.env, CURSOR_CWD: opts.cwd },
+      env: {
+        ...process.env,
+        CURSOR_CWD: opts.cwd,
+        CDC_STATE_DIR: process.env.CDC_STATE_DIR,
+      },
       stdio: ['ignore', 'pipe', 'pipe'],
     })
 

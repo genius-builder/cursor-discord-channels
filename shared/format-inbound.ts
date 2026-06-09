@@ -35,6 +35,10 @@ export function buildAgentPrompt(channelBlock: string): string {
     'You MUST reply using the discord `reply` tool with the chat_id from the channel block.',
     'Do not rely on stdout — only the reply tool reaches Discord.',
     '',
+    'Latency contract: send your FIRST discord reply immediately — short, conversational.',
+    'Do not run shell, grep, or file reads before that first reply.',
+    'If research is needed, reply first with a quick take, then follow up after reading.',
+    '',
     channelBlock,
   ].join('\n')
 }
