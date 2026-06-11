@@ -15,8 +15,8 @@ Discord @mention
 
 - The **bridge** is a small Node process (`npm run bridge`).
 - Each message starts a **Cursor CLI agent** run — same subscription as the IDE, not a separate API key.
-- By default the bridge **posts replies itself** (`CDC_BRIDGE_OUTBOUND=bridge`) so the correct bot avatar is always used, even when the Cursor Discord plugin or another MCP server is installed.
-- Optional **Discord MCP** (`npm run mcp`) gives agents `reply`, `react`, `fetch_messages`, etc. Use only in legacy mode (`CDC_BRIDGE_OUTBOUND=mcp`) on headless servers without conflicting Discord integrations.
+- By default the bridge **posts replies itself** — no Discord MCP wiring required.
+- Optional **Discord MCP** (`npm run mcp`) is for IDE-side agents or legacy outbound mode — see [Advanced: Discord MCP](docs/LOCAL_SETUP.md#advanced-discord-mcp-optional).
 
 ## Tradeoffs
 
@@ -87,48 +87,21 @@ agent login
 agent status    # should show logged in
 ```
 
-## 4. Wire Discord MCP into your project (legacy / optional)
-
-Only needed if you set `CDC_BRIDGE_OUTBOUND=mcp`. For the default bridge-outbound mode, skip this step or keep it for IDE-side tooling.
-
-Add to **your project's** `.cursor/mcp.json` (the folder you want the agent to work in):
-
-```json
-{
-  "mcpServers": {
-    "discord": {
-      "command": "bash",
-      "args": ["scripts/run-mcp.sh"],
-      "cwd": "/absolute/path/to/cursor-discord-channels",
-      "env": {
-        "CDC_STATE_DIR": "/Users/you/.cursor/channels/discord"
-      }
-    }
-  }
-}
-```
-
-Use `scripts/run-mcp.sh` (not `npm run mcp` directly) so the MCP loads the token from `CDC_STATE_DIR/.env`.
-
-Or copy [examples/mcp.json](../examples/mcp.json) and fix `cwd` + `CDC_STATE_DIR`.
-
-**Important:** `CDC_STATE_DIR` must match the bridge's state dir. If it doesn't, the bridge listens as **bot A** but MCP replies may use **bot B's token**.
-
-**Do not** add a global `~/.cursor/mcp.json` `discord` server without `CDC_STATE_DIR`. Cursor merges user + workspace MCP config; a global `npm run mcp` entry may fall back to another bot's token. Keep Discord MCP **project-only** (each bot's `.cursor/mcp.json` with `scripts/run-mcp.sh`).
-
-## 5. Point the bridge at your project
+## 4. Point the bridge at your project
 
 ```bash
 export CURSOR_CWD=/absolute/path/to/your/project
 export CURSOR_MODEL=composer-2.5   # optional; default is composer-2.5
-export CDC_STATE_DIR=~/.cursor/channels/discord   # must match token + access.json
+export CDC_STATE_DIR=~/.cursor/channels/discord   # token + access.json live here
 ```
+
+No `.cursor/mcp.json` is required for the default setup — the bridge posts replies itself.
 
 Access control: `$CDC_STATE_DIR/access.json` — see [discord-access skill](../skills/discord-access/SKILL.md).
 
 Optional team mention list: copy [examples/mentions.json](../examples/mentions.json) to `$CDC_STATE_DIR/mentions.json`.
 
-## 6. Run (foreground — good for first test)
+## 5. Run (foreground — good for first test)
 
 ```bash
 cd cursor-discord-channels
@@ -139,7 +112,7 @@ npm run bridge
 
 In Discord: `@YourBot ping` — you should get a reply in the thread from **your bot's avatar**.
 
-## 7. Run in background (nohup)
+## 6. Run in background (nohup)
 
 Keep the bridge up without a terminal tab:
 
@@ -204,3 +177,36 @@ For a larger fleet without melting your laptop, use [VPS_SETUP.md](./VPS_SETUP.m
 | Pairing message | Approve user in `access.json` (see discord-access skill) |
 
 Auth details: [AUTH.md](./AUTH.md)
+
+## Advanced: Discord MCP (optional)
+
+**You do not need this for the default bridge setup.**
+
+Discord MCP is a separate Cursor tool server (`npm run mcp`) that gives agents Discord actions: `reply`, `fetch_messages`, `react`, polls, attachments, etc.
+
+| Use case | Need MCP? |
+|----------|-----------|
+| `@mention → agent reply` via bridge (default) | **No** — bridge posts for you |
+| Agent replies via MCP tools (`CDC_BRIDGE_OUTBOUND=mcp`) | Yes |
+| Cursor IDE agent with Discord tools while you code | Yes |
+
+If you want MCP, add to **your project's** `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "discord": {
+      "command": "bash",
+      "args": ["scripts/run-mcp.sh"],
+      "cwd": "/absolute/path/to/cursor-discord-channels",
+      "env": {
+        "CDC_STATE_DIR": "/Users/you/.cursor/channels/discord"
+      }
+    }
+  }
+}
+```
+
+Use `scripts/run-mcp.sh` (not `npm run mcp` directly) so the MCP loads the token from `CDC_STATE_DIR/.env`. Copy [examples/mcp.json](../examples/mcp.json) and fix paths.
+
+**Important:** `CDC_STATE_DIR` must match the bridge's state dir when both run. Do not add a global `~/.cursor/mcp.json` `discord` entry without `CDC_STATE_DIR` — Cursor may merge configs and pick the wrong bot token.

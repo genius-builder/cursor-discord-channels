@@ -32,9 +32,8 @@ npm install
 
 1. **[Create a Discord bot](docs/DISCORD_BOT.md)** → save token to `~/.cursor/channels/discord/.env`
 2. `agent login`
-3. Add Discord MCP to your project's `.cursor/mcp.json` (see [LOCAL_SETUP.md](docs/LOCAL_SETUP.md))
-4. `export CURSOR_CWD=/path/to/your/project`
-5. `npm run bridge` — or `bash scripts/start-bridge-local.sh` for background
+3. `export CURSOR_CWD=/path/to/your/project` and `export CDC_STATE_DIR=~/.cursor/channels/discord`
+4. `npm run bridge` — or `bash scripts/start-bridge-local.sh` for background
 
 Full walkthrough: **[docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md)**
 

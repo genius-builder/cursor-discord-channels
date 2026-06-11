@@ -46,9 +46,7 @@ export CURSOR_CWD=/path/to/your/project   # agent workspace on the server
 export CURSOR_MODEL=composer-2.5          # optional
 ```
 
-Wire MCP in that project's `.cursor/mcp.json` when using MCP outbound mode (see [LOCAL_SETUP.md §4](./LOCAL_SETUP.md#4-wire-discord-mcp-into-your-project-legacy--optional)).
-
-On a headless VPS with no Cursor Discord plugin, you may set `CDC_BRIDGE_OUTBOUND=mcp` so the agent posts via Discord MCP tools. The default (`bridge`) works everywhere and is recommended unless you need MCP-only features like `edit_message` mid-run.
+Wire MCP in that project's `.cursor/mcp.json` only if you use MCP outbound mode — see [Advanced: Discord MCP](./LOCAL_SETUP.md#advanced-discord-mcp-optional).
 
 Access control: [discord-access skill](../skills/discord-access/SKILL.md).
 
