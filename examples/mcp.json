@@ -3,7 +3,7 @@
     "discord": {
       "command": "npm",
       "args": ["run", "mcp"],
-      "cwd": "/home/genius/cursor-discord-channels",
+      "cwd": "/path/to/cursor-discord-channels",
       "env": {}
     }
   }

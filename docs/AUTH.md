@@ -2,30 +2,28 @@
 
 ## The point
 
-**Claude Discord Channel** on GeniusTeam droplets uses `claude --channels` with **OAuth subscription** (`genius reauth`), not Anthropic API keys. Users burn Pro/Max quota, not per-token API billing.
+Always-on Discord agents should use **your Cursor subscription** (`agent login`), not a separate API key bill.
 
-**Cursor Discord Channel** must work the same way: **`cursor agent login` + subscription**, not `CURSOR_API_KEY`.
-
-If this project only supports API keys, almost nobody will adopt it. The value is riding the subscription you already pay for.
+If this project only supported API keys, almost nobody would adopt it. The value is riding the subscription you already pay for.
 
 ## Auth modes
 
 | Mode | Command | Billing | Use case |
 |------|---------|---------|----------|
-| **Subscription (default)** | `cursor agent login` | Pro/Max included usage | Droplet always-on agents, personal bots |
+| **Subscription (default)** | `cursor agent login` | Pro/Max included usage | Always-on agents, personal bots |
 | API key (opt-in) | `CURSOR_API_KEY=...` | Separate API metering | CI/CD, Enterprise service accounts |
 
 The bridge **defaults to subscription**. It checks `cursor agent status` at startup. No API key required.
 
-## Droplet setup (like `genius reauth`)
+## Server setup
 
 ```bash
-# On droplet (first time)
-cursor agent login          # browser OAuth — use SSH -L if headless
+# On the server (first time)
+cursor agent login          # browser OAuth — use SSH port-forward if headless
 cursor agent status         # should show Logged in + subscription tier
 
-# Or from laptop (mirror GeniusTeam reauth.sh)
-bash scripts/reauth.sh <droplet-ip>
+# Or from your laptop
+bash scripts/reauth.sh user@your-server-ip
 ```
 
 ## Verified locally
@@ -42,4 +40,4 @@ cursor agent -p --trust "Say exactly: subscription auth ok"
 - Requiring `CURSOR_API_KEY` in bridge `.env`
 - Positioning this as a "Cursor API wrapper"
 
-API key remains documented only for CI/Enterprise in `docs/DROPLET_VALIDATION.md` appendix.
+Use API keys only for CI or Enterprise automation where subscription login is not available.

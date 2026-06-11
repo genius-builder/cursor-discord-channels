@@ -11,7 +11,7 @@ export function ensureCursorSubscriptionAuth(): void {
       'bridge: Cursor subscription login required (not CURSOR_API_KEY).',
       'Run: agent login',
       'On a droplet: SSH in and login once, or use scripts/reauth.sh from your laptop.',
-      'This uses your Pro/Max subscription quota — same economics as claude --channels.',
+      'This uses your Pro/Max subscription quota — same as running the agent in your IDE.',
       '',
     ].join('\n'),
   )

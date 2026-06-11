@@ -2,7 +2,7 @@ import { existsSync } from 'fs'
 import { homedir } from 'os'
 import { join } from 'path'
 
-/** Per-agent override, e.g. CDC_STATE_DIR=~/.cursor/channels/discord-jackie */
+/** Per-agent override via CDC_STATE_DIR, e.g. ~/.cursor/channels/discord-mybot */
 export function stateDir(): string {
   if (process.env.CDC_STATE_DIR) return process.env.CDC_STATE_DIR
   const cursor = join(homedir(), '.cursor', 'channels', 'discord')

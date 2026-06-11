@@ -28,10 +28,10 @@ Discord  →  bridge  →  Cursor agent  →  Discord reply
 
 | Thing | Why |
 |-------|-----|
-| A **Discord bot** | Your agent’s identity in Discord |
+| A **Discord bot** | Your agent's identity in Discord |
 | **Cursor agent** on the server | `agent login` once (your normal Cursor account) |
 | A **small server** that stays on | So the bridge can run 24/7 |
-| **Node.js** | To run this repo |
+| **Node.js 20+** | To run this repo |
 
 ## Quick start
 
@@ -44,15 +44,15 @@ npm install
 1. Create a Discord bot and put the token in `~/.cursor/channels/discord/.env`  
    (`DISCORD_BOT_TOKEN=...`)
 2. Log in on the server: `agent login`
-3. Point the agent at your project folder (where your rules and context live)
+3. Point the agent at your project folder: `export CURSOR_CWD=/path/to/your/project`
 4. Start the bridge: `npm run bridge`
 
-For a production setup (auto-restart on boot), see `examples/systemd/` and `docs/JACKIE_PILOT.md`.
+For production (systemd, MCP wiring, re-auth), see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## More help
 
 - [docs/AUTH.md](docs/AUTH.md) — logging in with your Cursor subscription  
-- [docs/JACKIE_PILOT.md](docs/JACKIE_PILOT.md) — end-to-end setup notes from a real deployment  
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — VPS / systemd setup  
 - [skills/discord-access/SKILL.md](skills/discord-access/SKILL.md) — who is allowed to DM or tag the bot  
 
 ## License

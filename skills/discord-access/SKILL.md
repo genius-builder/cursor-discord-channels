@@ -5,27 +5,27 @@ description: Manage Discord channel access for cursor-discord-channels — pairi
 
 # Discord Access (Cursor)
 
-Same policy as Claude Code's `/discord:access` skill. State: `~/.cursor/channels/discord/access.json` (falls back to `~/.claude/` if migrating from GeniusTeam).
+State file: `~/.cursor/channels/discord/access.json`
 
 ## Pair someone
 
-When the bridge replies with a pairing code:
+When the bridge replies with a pairing code, approve the user:
 
 ```bash
-# Approve pending code (writes approved/<userId> with DM channel id)
 mkdir -p ~/.cursor/channels/discord/approved
-# Use the discord:access skill from claude-plugins-official, or edit access.json directly:
 jq '.allowFrom += ["USER_ID"]' ~/.cursor/channels/discord/access.json > /tmp/a.json && mv /tmp/a.json ~/.cursor/channels/discord/access.json
 ```
 
-## Bot-to-bot (GeniusTeam)
+Or use the `/discord:access` skill if you have the Claude Discord plugin installed — policy is the same.
+
+## Bot-to-bot
 
 Add sibling bot IDs to `trustedBots` and ensure `groups["*"]` exists:
 
 ```json
 {
   "groups": { "*": { "requireMention": true, "allowFrom": [] } },
-  "trustedBots": ["1484381532201156658", "1484459231624302673"]
+  "trustedBots": ["BOT_USER_ID_1", "BOT_USER_ID_2"]
 }
 ```
 
