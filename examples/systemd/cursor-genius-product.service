@@ -20,7 +20,11 @@ Environment=CDC_AGENT_BIN=/home/genius/.local/bin/agent
 Environment=PATH=/home/genius/.local/share/fnm/aliases/default/bin:/home/genius/.local/bin:/home/genius/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin
 ExecStartPre=/bin/bash /home/genius/cursor-discord-channels/scripts/sync-discord-mcp.sh
 ExecStart=/home/genius/.local/share/fnm/aliases/default/bin/node /home/genius/cursor-discord-channels/node_modules/tsx/dist/cli.mjs bridge/daemon.ts
-Restart=on-failure
+# Restart=always (not on-failure): the bridge can exit cleanly (status 0) on a
+# dropped Discord connection. on-failure ignores clean exits, which left the agent
+# silently dead with no restart (2026-06-11 incident). always + RestartSec=30
+# brings it back regardless of exit code.
+Restart=always
 RestartSec=30
 StandardOutput=journal
 StandardError=journal
