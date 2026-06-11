@@ -22,10 +22,33 @@ Discord @mention
 | Pros | Cons |
 |------|------|
 | Free infra (no VM) | Uses **local RAM** while the agent is thinking |
-| `agent login` already done on your Mac | Laptop must be **on and awake** for 24/7 |
+| `agent login` already done on your Mac | Mac must stay **powered on and not sleep** for 24/7 (lid closed is fine — see below) |
 | Fastest path to a working bot | One machine ≈ one agent comfortably |
 
-For always-on without your laptop, see [VPS_SETUP.md](./VPS_SETUP.md).
+For always-on without babysitting sleep settings, see [VPS_SETUP.md](./VPS_SETUP.md).
+
+## Keep running with the lid closed
+
+macOS sleeps when the lid closes unless you prevent it. The bridge only needs the **machine awake on the network** — the display can be off and the lid can be shut.
+
+**Option A — `caffeinate` (built in):**
+
+```bash
+# Prevent sleep while bridge runs (good for testing)
+caffeinate -dims npm run bridge
+```
+
+Or wrap the background script:
+
+```bash
+caffeinate -dims bash scripts/start-bridge-local.sh
+```
+
+**Option B — Amphetamine / Caffeine** (menu-bar apps that block sleep indefinitely).
+
+**Option C — clamshell mode** — MacBook on power + external display/keyboard; lid closed, still awake.
+
+If the Mac actually sleeps, the Discord connection drops and @mentions won't wake the agent until you're back.
 
 ## Prerequisites
 
