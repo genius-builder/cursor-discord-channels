@@ -55,7 +55,7 @@ If the Mac actually sleeps, the Discord connection drops and @mentions won't wak
 - macOS or Linux (Windows: WSL)
 - Node.js 20+
 - [Cursor CLI](https://cursor.com/docs/cli) — `agent login` once
-- A Discord bot token ([Developer Portal](https://discord.com/developers/applications))
+- **A Discord bot you create yourself** — see [DISCORD_BOT.md](./DISCORD_BOT.md) (required; ~10 min first time)
 
 ## 1. Install
 
@@ -65,16 +65,19 @@ cd cursor-discord-channels
 npm install
 ```
 
-## 2. Discord bot token
+## 2. Create a Discord bot and save the token
+
+If you don't have a bot yet, follow **[DISCORD_BOT.md](./DISCORD_BOT.md)** first (Developer Portal → new application → bot token → invite to your server → Message Content Intent).
+
+Then save the token:
 
 ```bash
 mkdir -p ~/.cursor/channels/discord
 cat > ~/.cursor/channels/discord/.env <<'EOF'
 DISCORD_BOT_TOKEN=your_bot_token_here
 EOF
+chmod 600 ~/.cursor/channels/discord/.env
 ```
-
-Enable **Message Content Intent** on the bot. Invite it to your server with permissions to read/send messages.
 
 ## 3. Cursor auth
 

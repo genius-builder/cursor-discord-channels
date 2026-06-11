@@ -18,7 +18,7 @@ For the fastest first run, try [LOCAL_SETUP.md](./LOCAL_SETUP.md) on your Mac fi
 
 - Node.js 20+ on the server
 - [Cursor CLI](https://cursor.com/docs/cli) on the server
-- Discord bot token(s)
+- **A Discord bot you create yourself** — [DISCORD_BOT.md](./DISCORD_BOT.md)
 - SSH access
 
 ## 1. Install on the server
@@ -31,11 +31,14 @@ npm install
 
 ## 2. Configure
 
+Create a bot if needed: **[DISCORD_BOT.md](./DISCORD_BOT.md)**.
+
 ```bash
 mkdir -p ~/.cursor/channels/discord
 cat > ~/.cursor/channels/discord/.env <<'EOF'
 DISCORD_BOT_TOKEN=your_bot_token_here
 EOF
+chmod 600 ~/.cursor/channels/discord/.env
 ```
 
 ```bash

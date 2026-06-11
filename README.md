@@ -29,7 +29,7 @@ cd cursor-discord-channels
 npm install
 ```
 
-1. Discord bot token → `~/.cursor/channels/discord/.env` (`DISCORD_BOT_TOKEN=...`)
+1. **[Create a Discord bot](docs/DISCORD_BOT.md)** → save token to `~/.cursor/channels/discord/.env`
 2. `agent login`
 3. Add Discord MCP to your project's `.cursor/mcp.json` (see [LOCAL_SETUP.md](docs/LOCAL_SETUP.md))
 4. `export CURSOR_CWD=/path/to/your/project`
@@ -46,6 +46,7 @@ Full walkthrough: **[docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md)**
 
 ## More help
 
+- [docs/DISCORD_BOT.md](docs/DISCORD_BOT.md) — create a bot in Discord Developer Portal (start here if new)
 - [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md) — Mac/laptop + nohup (recommended first)
 - [docs/VPS_SETUP.md](docs/VPS_SETUP.md) — systemd, multi-agent on a server
 - [docs/AUTH.md](docs/AUTH.md) — subscription vs API key
