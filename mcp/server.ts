@@ -34,6 +34,7 @@ import { randomBytes } from 'crypto'
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, statSync, renameSync, realpathSync } from 'fs'
 import { join, sep } from 'path'
 import { loadStateEnv } from '../shared/env.js'
+import { mentionsAnotherActor } from '../shared/gate.js'
 import { mentionMcpInstructions } from '../shared/mentions.js'
 import {
   ACCESS_FILE,
@@ -291,22 +292,23 @@ async function gate(msg: Message): Promise<GateResult> {
 }
 
 async function isMentioned(msg: Message, extraPatterns?: string[]): Promise<boolean> {
-  if (client.user && msg.mentions.has(client.user)) return true
+  const botId = client.user?.id
+  if (botId && msg.mentions.has(botId)) return true
 
   // @everyone / @here are not user mentions — Discord.js sets everyone separately.
   if (msg.mentions.everyone) return true
   if (/\B@here\b/i.test(msg.content)) return true
 
-  // Reply to one of our messages counts as an implicit mention.
-  const refId = msg.reference?.messageId
-  if (refId) {
-    if (recentSentIds.has(refId)) return true
-    // Fallback: fetch the referenced message and check authorship.
-    // Can fail if the message was deleted or we lack history perms.
-    try {
-      const ref = await msg.fetchReference()
-      if (ref.author.id === client.user?.id) return true
-    } catch {}
+  // Reply-thread wake only if the sender didn't @another bot/user instead.
+  if (!mentionsAnotherActor(botId, msg)) {
+    const refId = msg.reference?.messageId
+    if (refId) {
+      if (recentSentIds.has(refId)) return true
+      try {
+        const ref = await msg.fetchReference()
+        if (ref.author.id === botId) return true
+      } catch {}
+    }
   }
 
   const text = msg.content

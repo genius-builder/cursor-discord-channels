@@ -172,6 +172,8 @@ Each `CDC_STATE_DIR` gets its own `.env` (`DISCORD_BOT_TOKEN`) and `access.json`
 
 Each bot also needs its **own workspace** (or its own `mcp.json` with matching `CDC_STATE_DIR` in the `env` block). Do not point two bots at the same `mcp.json` without per-bot `CDC_STATE_DIR`.
 
+**Multiple bots in one channel:** They can coexist. Each bridge only wakes on `@ThatBot`. One caveat: if you **reply in Bill's thread** while `@lily-bot`, Bill used to wake too (reply-chain logic). Use a **new top-level message** `@lily-bot …` until all bridges run the latest gate fix.
+
 For a larger fleet without melting your laptop, use [VPS_SETUP.md](./VPS_SETUP.md).
 
 ## Troubleshooting
