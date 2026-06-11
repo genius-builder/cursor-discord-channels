@@ -2,7 +2,7 @@
 
 Run the bridge on **your Mac or laptop**. No VPS bill — only your **Cursor subscription** (Composer usage when the agent runs).
 
-Best for: trying it out, solo use, one bot, small teams.
+Best for: trying it out, solo use, a small fleet (2–3 bots), small teams.
 
 ## How it works on your machine
 
@@ -23,7 +23,7 @@ Discord @mention
 |------|------|
 | Free infra (no VM) | Uses **local RAM** while the agent is thinking |
 | `agent login` already done on your Mac | Mac must stay **powered on and not sleep** for 24/7 (lid closed is fine — see below) |
-| Fastest path to a working bot | One machine ≈ one agent comfortably |
+| Fastest path to a working bot | **2–3 agents** is usually fine; **4–5+** can OOM and heat the machine fast |
 
 For always-on without babysitting sleep settings, see [VPS_SETUP.md](./VPS_SETUP.md).
 
@@ -139,6 +139,28 @@ Or manually:
 nohup npm run bridge >> ~/.cursor/channels/discord/bridge.log 2>&1 &
 echo $! > ~/.cursor/channels/discord/bridge.pid
 ```
+
+## Multiple agents on one Mac
+
+You can run **several bots locally** — one bridge process per Discord bot. In practice **2–3 runs fine**; beyond that (especially 4–5+) concurrent agent work tends to **spike RAM** and **heat the machine** quickly.
+
+Each agent needs its own state dir and workspace:
+
+```bash
+# Terminal / tmux pane A
+export CDC_STATE_DIR=~/.cursor/channels/discord-bot-a
+export CURSOR_CWD=/path/to/project-a
+npm run bridge
+
+# Terminal / tmux pane B
+export CDC_STATE_DIR=~/.cursor/channels/discord-bot-b
+export CURSOR_CWD=/path/to/project-b
+npm run bridge
+```
+
+Each `CDC_STATE_DIR` gets its own `.env` (`DISCORD_BOT_TOKEN`) and `access.json`.
+
+For a larger fleet without melting your laptop, use [VPS_SETUP.md](./VPS_SETUP.md).
 
 ## Troubleshooting
 

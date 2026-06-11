@@ -16,9 +16,9 @@ Uses your **Cursor subscription** — no separate API bill. No VPS required to g
 |---|---|---|
 | **Cost** | No VM — subscription only | ~$5–10/mo server |
 | **Difficulty** | Easiest (`nohup` on your Mac) | SSH + systemd |
-| **RAM** | Uses your laptop while agent runs | Uses server RAM |
+| **RAM** | Shared with your laptop; scales with concurrent agents | Uses server RAM |
 | **Uptime** | Mac powered on, no sleep (lid closed OK with `caffeinate`) | 24/7 without your machine |
-| **Agents** | One bot comfortably | Several bots / workspaces |
+| **Agents** | 2–3 bots usually fine; 4+ strains RAM & thermals | Many bots / workspaces |
 | **Guide** | [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md) | [docs/VPS_SETUP.md](docs/VPS_SETUP.md) |
 
 ## Quick start (local)
