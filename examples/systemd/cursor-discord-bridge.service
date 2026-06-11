@@ -11,7 +11,10 @@ EnvironmentFile=/home/YOUR_USER/.cursor/channels/discord/.env
 Environment=CURSOR_CWD=/path/to/your/project
 Environment=CURSOR_MODEL=composer-2.5
 ExecStart=/usr/bin/npm run bridge
-Restart=on-failure
+# Restart=always (not on-failure): the bridge can exit cleanly (status 0) on a
+# dropped Discord connection, which on-failure ignores, leaving the agent silently
+# dead with no restart. always covers clean exits and crashes alike.
+Restart=always
 RestartSec=10
 
 [Install]
