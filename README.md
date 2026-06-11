@@ -2,10 +2,11 @@
 
 **Talk to your cursor agents in Discord, get the work done**
 
-Discord bridge + MCP tools for Cursor. When someone @mentions your bot, a small **bridge** wakes the **Cursor CLI agent** (Composer by default); the agent replies via **Discord MCP** (`reply`, `react`, read history, etc.).
+Discord bridge + MCP tools for Cursor. When someone @mentions your bot, a small **bridge** wakes the **Cursor CLI agent** (Composer by default); the bridge posts the reply as **your bot** (default), or the agent can use **Discord MCP** tools in legacy mode.
 
 ```
-Discord  →  bridge  →  cursor agent  →  Discord MCP  →  reply in thread
+Discord  →  bridge  →  cursor agent  →  bridge posts reply (default)
+                              ↳ or Discord MCP when CDC_BRIDGE_OUTBOUND=mcp
 ```
 
 Uses your **Cursor subscription** — no separate API bill. No VPS required to get started.

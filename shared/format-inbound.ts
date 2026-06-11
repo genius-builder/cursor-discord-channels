@@ -26,7 +26,25 @@ export function formatChannelBlock(msg: Message): string {
   ].join('\n')
 }
 
-export function buildAgentPrompt(channelBlock: string): string {
+function bridgeOutboundPrompt(channelBlock: string): string {
+  return [
+    'You received a Discord message. The sender reads Discord, not this terminal.',
+    'Do NOT use any Discord MCP or plugin tools (reply, edit_message, react, fetch_messages, etc.).',
+    'Those tools post as the wrong bot when multiple Discord integrations are installed.',
+    'Write your Discord reply as plain text in your response ONLY — the bridge posts it as this bot.',
+    '',
+    'One wake = one user-visible message: put the full answer in your text output (no tool calls for Discord).',
+    'Do not apologize for prior turns; answer only the latest message.',
+    '',
+    mentionPromptBlock(),
+    '',
+    'To notify the sender, tag them with <@user_id> from the channel block or list above.',
+    '',
+    channelBlock,
+  ].join('\n')
+}
+
+function mcpOutboundPrompt(channelBlock: string): string {
   return [
     'You received a Discord message. The sender reads Discord, not this terminal.',
     'You MUST reply using the discord `reply` tool with the chat_id from the channel block.',
@@ -42,4 +60,21 @@ export function buildAgentPrompt(channelBlock: string): string {
     '',
     channelBlock,
   ].join('\n')
+}
+
+/** Bridge mode posts via the bridge Discord client (correct bot avatar). MCP mode uses agent reply tools. */
+export function buildAgentPrompt(channelBlock: string): string {
+  if (process.env.CDC_BRIDGE_OUTBOUND === 'mcp') return mcpOutboundPrompt(channelBlock)
+  return bridgeOutboundPrompt(channelBlock)
+}
+
+/** Strip agent stdout to the user-visible Discord reply body. */
+export function extractBridgeReply(stdout: string): string {
+  const lines = stdout.split('\n')
+  const kept: string[] = []
+  for (const line of lines) {
+    if (/^(chat|session)[\s_-]*id[:\s]/i.test(line.trim())) continue
+    kept.push(line)
+  }
+  return kept.join('\n').trim()
 }

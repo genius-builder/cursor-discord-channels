@@ -27,10 +27,11 @@ export function runCursorAgent(opts: RunAgentOptions): Promise<RunAgentResult> {
   const timeoutMs = opts.timeoutMs ?? Number(process.env.CURSOR_AGENT_TIMEOUT_MS ?? 600_000)
   const existing = getSessionId(opts.chatId)
 
+  const bridgeOutbound = process.env.CDC_BRIDGE_OUTBOUND !== 'mcp'
   const args = [
     '-p',
     '--yolo',
-    '--approve-mcps',
+    ...(bridgeOutbound ? [] : ['--approve-mcps']),
     '--trust',
     '--output-format',
     'text',

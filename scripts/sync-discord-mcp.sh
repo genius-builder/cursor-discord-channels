@@ -1,5 +1,5 @@
 #!/bin/bash
-# Overlay Lily's forked discord MCP server.ts on a canonical install path.
+# Overlay forked discord MCP server.ts on a canonical install path.
 # Idempotent — safe to run on every bridge startup.
 
 set -euo pipefail

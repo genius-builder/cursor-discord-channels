@@ -10,12 +10,13 @@ Best for: trying it out, solo use, a small fleet (2–3 bots), small teams.
 Discord @mention
   → bridge (Node, background via nohup)
       → spawns `cursor agent -p` per message (default model: Composer 2.5)
-          → agent calls Discord MCP tools → reply in thread
+          → agent writes reply text → bridge posts it as this bot (default)
 ```
 
 - The **bridge** is a small Node process (`npm run bridge`).
 - Each message starts a **Cursor CLI agent** run — same subscription as the IDE, not a separate API key.
-- The **Discord MCP server** (`npm run mcp`) gives the agent `reply`, `react`, `fetch_messages`, etc.
+- By default the bridge **posts replies itself** (`CDC_BRIDGE_OUTBOUND=bridge`) so the correct bot avatar is always used, even when the Cursor Discord plugin or another MCP server is installed.
+- Optional **Discord MCP** (`npm run mcp`) gives agents `reply`, `react`, `fetch_messages`, etc. Use only in legacy mode (`CDC_BRIDGE_OUTBOUND=mcp`) on headless servers without conflicting Discord integrations.
 
 ## Tradeoffs
 
@@ -86,9 +87,11 @@ agent login
 agent status    # should show logged in
 ```
 
-## 4. Wire Discord MCP into your project
+## 4. Wire Discord MCP into your project (legacy / optional)
 
-The agent needs Discord tools. Add to **your project's** `.cursor/mcp.json` (the folder you want the agent to work in):
+Only needed if you set `CDC_BRIDGE_OUTBOUND=mcp`. For the default bridge-outbound mode, skip this step or keep it for IDE-side tooling.
+
+Add to **your project's** `.cursor/mcp.json` (the folder you want the agent to work in):
 
 ```json
 {
@@ -109,46 +112,59 @@ Use `scripts/run-mcp.sh` (not `npm run mcp` directly) so the MCP loads the token
 
 Or copy [examples/mcp.json](../examples/mcp.json) and fix `cwd` + `CDC_STATE_DIR`.
 
-**Important:** `CDC_STATE_DIR` must match the bridge's state dir. If it doesn't, the bridge listens as **Lily Bot** but replies as **another bot** (e.g. Bill) — wrong token on the MCP side.
+**Important:** `CDC_STATE_DIR` must match the bridge's state dir. If it doesn't, the bridge listens as **bot A** but MCP replies may use **bot B's token**.
+
+**Do not** add a global `~/.cursor/mcp.json` `discord` server without `CDC_STATE_DIR`. Cursor merges user + workspace MCP config; a global `npm run mcp` entry may fall back to another bot's token. Keep Discord MCP **project-only** (each bot's `.cursor/mcp.json` with `scripts/run-mcp.sh`).
 
 ## 5. Point the bridge at your project
 
 ```bash
 export CURSOR_CWD=/absolute/path/to/your/project
 export CURSOR_MODEL=composer-2.5   # optional; default is composer-2.5
+export CDC_STATE_DIR=~/.cursor/channels/discord   # must match token + access.json
 ```
 
-Access control: `~/.cursor/channels/discord/access.json` — see [discord-access skill](../skills/discord-access/SKILL.md).
+Access control: `$CDC_STATE_DIR/access.json` — see [discord-access skill](../skills/discord-access/SKILL.md).
 
-Optional team mention list: copy [examples/mentions.json](../examples/mentions.json) to `~/.cursor/channels/discord/mentions.json`.
+Optional team mention list: copy [examples/mentions.json](../examples/mentions.json) to `$CDC_STATE_DIR/mentions.json`.
 
 ## 6. Run (foreground — good for first test)
 
 ```bash
 cd cursor-discord-channels
 export CURSOR_CWD=/path/to/your/project
+export CDC_STATE_DIR=~/.cursor/channels/discord
 npm run bridge
 ```
 
-In Discord: `@YourBot ping` — you should get a reply in the thread.
+In Discord: `@YourBot ping` — you should get a reply in the thread from **your bot's avatar**.
 
 ## 7. Run in background (nohup)
 
 Keep the bridge up without a terminal tab:
 
 ```bash
+export CURSOR_CWD=/path/to/your/project
+export CDC_STATE_DIR=~/.cursor/channels/discord
 bash scripts/start-bridge-local.sh
 ```
 
-Logs: `~/.cursor/channels/discord/bridge.log`  
-Stop: `kill $(cat ~/.cursor/channels/discord/bridge.pid)`
+Logs: `$CDC_STATE_DIR/bridge.log`  
+Stop: `kill $(cat $CDC_STATE_DIR/bridge.pid)`
 
 Or manually:
 
 ```bash
-nohup npm run bridge >> ~/.cursor/channels/discord/bridge.log 2>&1 &
-echo $! > ~/.cursor/channels/discord/bridge.pid
+nohup npm run bridge >> "$CDC_STATE_DIR/bridge.log" 2>&1 &
+echo $! > "$CDC_STATE_DIR/bridge.pid"
 ```
+
+## Outbound mode: bridge vs MCP
+
+| Env | Behavior | When to use |
+|-----|----------|-------------|
+| `CDC_BRIDGE_OUTBOUND=bridge` (default) | Agent writes plain text; bridge calls `msg.reply()` | **Recommended** — correct avatar even with Cursor Discord plugin installed |
+| `CDC_BRIDGE_OUTBOUND=mcp` | Agent uses Discord MCP `reply` tool; bridge does not post stdout | Headless VPS with no conflicting Discord MCP plugins |
 
 ## Multiple agents on one Mac
 
@@ -170,9 +186,9 @@ npm run bridge
 
 Each `CDC_STATE_DIR` gets its own `.env` (`DISCORD_BOT_TOKEN`) and `access.json`.
 
-Each bot also needs its **own workspace** (or its own `mcp.json` with matching `CDC_STATE_DIR` in the `env` block). Do not point two bots at the same `mcp.json` without per-bot `CDC_STATE_DIR`.
+Each bot also needs its **own workspace** when using MCP outbound mode. Do not point two bots at the same `mcp.json` without per-bot `CDC_STATE_DIR`.
 
-**Multiple bots in one channel:** They can coexist. Each bridge only wakes on `@ThatBot`. One caveat: if you **reply in Bill's thread** while `@lily-bot`, Bill used to wake too (reply-chain logic). Use a **new top-level message** `@lily-bot …` until all bridges run the latest gate fix.
+**Multiple bots in one channel:** They can coexist. Each bridge only wakes on `@ThatBot`. If you **reply in bot A's thread** while `@bot-b`, bot A may also wake (reply-chain logic). Use a **new top-level message** `@bot-b …` or run the latest gate fix on all bridges.
 
 For a larger fleet without melting your laptop, use [VPS_SETUP.md](./VPS_SETUP.md).
 
@@ -181,8 +197,10 @@ For a larger fleet without melting your laptop, use [VPS_SETUP.md](./VPS_SETUP.m
 | Symptom | Check |
 |---------|--------|
 | Bridge exits on start | `agent status` — re-run `agent login` |
-| Bot online, no reply | `CURSOR_CWD` must contain `.cursor/mcp.json` with discord server |
-| Agent error in Discord | `tail -f ~/.cursor/channels/discord/bridge.log` |
+| Bot online, no reply | `CURSOR_CWD` set; check `$CDC_STATE_DIR/bridge.log` for empty stdout |
+| Wrong avatar (bot A typing, bot B avatar) | Default is bridge outbound — do not set `CDC_BRIDGE_OUTBOUND=mcp` on machines with the Cursor Discord plugin |
+| Another bot wakes when you @mention yours in its thread | Post a **new top-level** message; ensure all bridges run the latest gate fix |
+| Agent error in Discord | `tail -f $CDC_STATE_DIR/bridge.log` |
 | Pairing message | Approve user in `access.json` (see discord-access skill) |
 
 Auth details: [AUTH.md](./AUTH.md)

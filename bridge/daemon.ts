@@ -1,7 +1,8 @@
 #!/usr/bin/env tsx
 /**
  * Cursor Discord bridge — inbound gateway.
- * Discord message → access gate → cursor agent -p → agent replies via MCP.
+ * Discord message → access gate → cursor agent -p → bridge posts reply (default).
+ * Set CDC_BRIDGE_OUTBOUND=mcp for legacy agent-side Discord MCP replies.
  */
 
 import { Client, GatewayIntentBits, Partials, type Message } from 'discord.js'
@@ -11,7 +12,7 @@ import {
   startApprovalPoller,
 } from '../shared/access.js'
 import { loadStateEnv } from '../shared/env.js'
-import { buildAgentPrompt, formatChannelBlock } from '../shared/format-inbound.js'
+import { buildAgentPrompt, extractBridgeReply, formatChannelBlock } from '../shared/format-inbound.js'
 import { gate } from '../shared/gate.js'
 import { ENV_FILE } from '../shared/paths.js'
 import { ensureCursorSubscriptionAuth } from './auth.js'
@@ -73,11 +74,25 @@ async function processMessage(msg: Message): Promise<void> {
   const prompt = buildAgentPrompt(formatChannelBlock(msg))
   process.stderr.write(`bridge: agent run chat=${msg.channelId} user=${msg.author.username}\n`)
 
+  const bridgeOutbound = process.env.CDC_BRIDGE_OUTBOUND !== 'mcp'
+
   try {
     const out = await runCursorAgent({ cwd: CWD, prompt, chatId: msg.channelId })
     if (out.exitCode !== 0) {
       process.stderr.write(`bridge: agent exited ${out.exitCode}\n${out.stderr}\n`)
       await msg.reply(`Agent error (exit ${out.exitCode}). Check bridge logs.`).catch(() => {})
+      return
+    }
+
+    if (bridgeOutbound) {
+      const text = extractBridgeReply(out.stdout)
+      if (!text) {
+        process.stderr.write('bridge: agent returned empty stdout; no Discord post\n')
+        return
+      }
+      await msg.reply(text.slice(0, 2000)).catch(err => {
+        process.stderr.write(`bridge: reply failed: ${err instanceof Error ? err.message : String(err)}\n`)
+      })
     }
   } catch (err) {
     const text = err instanceof Error ? err.message : String(err)
