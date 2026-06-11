@@ -1,6 +1,6 @@
 # cursor-discord-channels
 
-**Talk to your Cursor agent in Discord — and have it talk back.**
+**Talk to your cursor agents in Discord, get the work done**
 
 Discord bridge + MCP tools for Cursor. When someone @mentions your bot, a small **bridge** wakes the **Cursor CLI agent** (Composer by default); the agent replies via **Discord MCP** (`reply`, `react`, read history, etc.).
 
