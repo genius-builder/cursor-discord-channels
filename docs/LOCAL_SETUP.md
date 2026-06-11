@@ -94,8 +94,8 @@ The agent needs Discord tools. Add to **your project's** `.cursor/mcp.json` (the
 {
   "mcpServers": {
     "discord": {
-      "command": "npm",
-      "args": ["run", "mcp"],
+      "command": "bash",
+      "args": ["scripts/run-mcp.sh"],
       "cwd": "/absolute/path/to/cursor-discord-channels",
       "env": {
         "CDC_STATE_DIR": "/Users/you/.cursor/channels/discord"
@@ -105,9 +105,11 @@ The agent needs Discord tools. Add to **your project's** `.cursor/mcp.json` (the
 }
 ```
 
+Use `scripts/run-mcp.sh` (not `npm run mcp` directly) so the MCP loads the token from `CDC_STATE_DIR/.env`.
+
 Or copy [examples/mcp.json](../examples/mcp.json) and fix `cwd` + `CDC_STATE_DIR`.
 
-**Important:** `CDC_STATE_DIR` in `mcp.json` must match the bridge's state dir (where the bot token lives). If it doesn't, the bridge listens as **Lily Bot** but replies as **another bot** (e.g. Bill) — wrong token on the MCP side.
+**Important:** `CDC_STATE_DIR` must match the bridge's state dir. If it doesn't, the bridge listens as **Lily Bot** but replies as **another bot** (e.g. Bill) — wrong token on the MCP side.
 
 ## 5. Point the bridge at your project
 

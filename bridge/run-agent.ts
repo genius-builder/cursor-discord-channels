@@ -48,6 +48,8 @@ export function runCursorAgent(opts: RunAgentOptions): Promise<RunAgentResult> {
         ...process.env,
         CURSOR_CWD: opts.cwd,
         CDC_STATE_DIR: process.env.CDC_STATE_DIR,
+        // Ensure MCP subprocess replies as this bridge's bot, not a fallback token.
+        DISCORD_BOT_TOKEN: process.env.DISCORD_BOT_TOKEN,
       },
       stdio: ['ignore', 'pipe', 'pipe'],
     })

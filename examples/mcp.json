@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "discord": {
-      "command": "npm",
-      "args": ["run", "mcp"],
+      "command": "bash",
+      "args": ["scripts/run-mcp.sh"],
       "cwd": "/path/to/cursor-discord-channels",
       "env": {
         "CDC_STATE_DIR": "/path/to/.cursor/channels/discord"
