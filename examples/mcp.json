@@ -4,7 +4,9 @@
       "command": "npm",
       "args": ["run", "mcp"],
       "cwd": "/path/to/cursor-discord-channels",
-      "env": {}
+      "env": {
+        "CDC_STATE_DIR": "/path/to/.cursor/channels/discord"
+      }
     }
   }
 }

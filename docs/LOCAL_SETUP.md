@@ -96,13 +96,18 @@ The agent needs Discord tools. Add to **your project's** `.cursor/mcp.json` (the
     "discord": {
       "command": "npm",
       "args": ["run", "mcp"],
-      "cwd": "/absolute/path/to/cursor-discord-channels"
+      "cwd": "/absolute/path/to/cursor-discord-channels",
+      "env": {
+        "CDC_STATE_DIR": "/Users/you/.cursor/channels/discord"
+      }
     }
   }
 }
 ```
 
-Or copy [examples/mcp.json](../examples/mcp.json) and fix `cwd`.
+Or copy [examples/mcp.json](../examples/mcp.json) and fix `cwd` + `CDC_STATE_DIR`.
+
+**Important:** `CDC_STATE_DIR` in `mcp.json` must match the bridge's state dir (where the bot token lives). If it doesn't, the bridge listens as **Lily Bot** but replies as **another bot** (e.g. Bill) — wrong token on the MCP side.
 
 ## 5. Point the bridge at your project
 
@@ -162,6 +167,8 @@ npm run bridge
 ```
 
 Each `CDC_STATE_DIR` gets its own `.env` (`DISCORD_BOT_TOKEN`) and `access.json`.
+
+Each bot also needs its **own workspace** (or its own `mcp.json` with matching `CDC_STATE_DIR` in the `env` block). Do not point two bots at the same `mcp.json` without per-bot `CDC_STATE_DIR`.
 
 For a larger fleet without melting your laptop, use [VPS_SETUP.md](./VPS_SETUP.md).
 
