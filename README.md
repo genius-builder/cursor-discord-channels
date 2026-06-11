@@ -2,38 +2,26 @@
 
 **Talk to your Cursor agent in Discord — and have it talk back.**
 
-This project connects a **Cursor agent** to **Discord**, so your agent can live on a small always-on server and reply when people @mention it in a channel.
-
-## What you get
-
-- **@mention your agent in Discord** and get a real reply in the thread
-- **An always-on assistant** that does not need your laptop open
-- **Uses your Cursor subscription** (not a separate API bill)
-- **You stay in control** — who can talk to the bot, which channels, pairing for new people
-
-Think of it as giving your Cursor agent a phone line into Discord.
-
-## How it works (simple)
-
-1. Someone tags your bot in Discord  
-2. A small **bridge** program on your server sees the message  
-3. It wakes up **Cursor agent** with that message  
-4. The agent answers using **Discord tools** (reply in the thread, react, read recent messages, etc.)
+Discord bridge + MCP tools for Cursor. When someone @mentions your bot, a small **bridge** wakes the **Cursor CLI agent** (Composer by default); the agent replies via **Discord MCP** (`reply`, `react`, read history, etc.).
 
 ```
-Discord  →  bridge  →  Cursor agent  →  Discord reply
+Discord  →  bridge  →  cursor agent  →  Discord MCP  →  reply in thread
 ```
 
-## What you need
+Uses your **Cursor subscription** — no separate API bill. No VPS required to get started.
 
-| Thing | Why |
-|-------|-----|
-| A **Discord bot** | Your agent's identity in Discord |
-| **Cursor agent** on the server | `agent login` once (your normal Cursor account) |
-| A **small server** that stays on | So the bridge can run 24/7 |
-| **Node.js 20+** | To run this repo |
+## Choose your setup
 
-## Quick start
+| | **Local (start here)** | **VPS (always-on)** |
+|---|---|---|
+| **Cost** | No VM — subscription only | ~$5–10/mo server |
+| **Difficulty** | Easiest (`nohup` on your Mac) | SSH + systemd |
+| **RAM** | Uses your laptop while agent runs | Uses server RAM |
+| **Uptime** | Laptop on & awake | 24/7 without your machine |
+| **Agents** | One bot comfortably | Several bots / workspaces |
+| **Guide** | [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md) | [docs/VPS_SETUP.md](docs/VPS_SETUP.md) |
+
+## Quick start (local)
 
 ```bash
 git clone https://github.com/lilyzhng/cursor-discord-channels.git
@@ -41,19 +29,27 @@ cd cursor-discord-channels
 npm install
 ```
 
-1. Create a Discord bot and put the token in `~/.cursor/channels/discord/.env`  
-   (`DISCORD_BOT_TOKEN=...`)
-2. Log in on the server: `agent login`
-3. Point the agent at your project folder: `export CURSOR_CWD=/path/to/your/project`
-4. Start the bridge: `npm run bridge`
+1. Discord bot token → `~/.cursor/channels/discord/.env` (`DISCORD_BOT_TOKEN=...`)
+2. `agent login`
+3. Add Discord MCP to your project's `.cursor/mcp.json` (see [LOCAL_SETUP.md](docs/LOCAL_SETUP.md))
+4. `export CURSOR_CWD=/path/to/your/project`
+5. `npm run bridge` — or `bash scripts/start-bridge-local.sh` for background
 
-For production (systemd, MCP wiring, re-auth), see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+Full walkthrough: **[docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md)**
+
+## What you get
+
+- **@mention your bot** → real reply in the thread
+- **Subscription auth** — same quota as Cursor IDE / CLI
+- **Access control** — pairing, allowlists, trusted bots
+- **Self-hosted** — your token, your rules
 
 ## More help
 
-- [docs/AUTH.md](docs/AUTH.md) — logging in with your Cursor subscription  
-- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — VPS / systemd setup  
-- [skills/discord-access/SKILL.md](skills/discord-access/SKILL.md) — who is allowed to DM or tag the bot  
+- [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md) — Mac/laptop + nohup (recommended first)
+- [docs/VPS_SETUP.md](docs/VPS_SETUP.md) — systemd, multi-agent on a server
+- [docs/AUTH.md](docs/AUTH.md) — subscription vs API key
+- [skills/discord-access/SKILL.md](skills/discord-access/SKILL.md) — who can talk to the bot
 
 ## License
 

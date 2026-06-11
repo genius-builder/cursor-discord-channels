@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Cursor + Discord MCP + headless bridge for always-on agents on your server",
+  "description": "Discord bridge + MCP tools for Cursor agents — local (nohup) or VPS",
   "scripts": {
     "bridge": "tsx bridge/daemon.ts",
     "mcp": "CDC_MCP_ONLY=1 tsx mcp/server.ts",

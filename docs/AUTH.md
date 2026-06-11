@@ -15,16 +15,19 @@ If this project only supported API keys, almost nobody would adopt it. The value
 
 The bridge **defaults to subscription**. It checks `cursor agent status` at startup. No API key required.
 
-## Server setup
+## Setup
+
+**Local:** `agent login` on your Mac — see [LOCAL_SETUP.md](./LOCAL_SETUP.md).
+
+**VPS:** login on the server (or copy auth from laptop):
 
 ```bash
-# On the server (first time)
-cursor agent login          # browser OAuth — use SSH port-forward if headless
-cursor agent status         # should show Logged in + subscription tier
-
-# Or from your laptop
+cursor agent login          # browser OAuth — SSH port-forward if headless
+cursor agent status
 bash scripts/reauth.sh user@your-server-ip
 ```
+
+See [VPS_SETUP.md](./VPS_SETUP.md).
 
 ## Verified locally
 
