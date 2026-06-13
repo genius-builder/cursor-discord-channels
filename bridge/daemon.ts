@@ -43,6 +43,14 @@ const client = new Client({
 let busy = false
 const queue: Message[] = []
 
+// Watchdog: agent runs are drained serially, so a single hung run (SIGTERM'd
+// at the timeout) blocks every channel. The process stays alive, so systemd's
+// Restart=always never fires and the bot goes silently dead. Count consecutive
+// timeouts and self-exit once they cross the threshold — systemd then restarts
+// the unit fresh (re-running ExecStartPre MCP sync + auth), clearing the wedge.
+const MAX_CONSECUTIVE_TIMEOUTS = Number(process.env.CDC_MAX_CONSECUTIVE_TIMEOUTS ?? 2)
+let consecutiveTimeouts = 0
+
 async function fetchTextChannel(id: string) {
   const ch = await client.channels.fetch(id)
   if (!ch?.isTextBased()) throw new Error(`channel ${id} not text-based`)
@@ -78,6 +86,23 @@ async function processMessage(msg: Message): Promise<void> {
 
   try {
     const out = await runCursorAgent({ cwd: CWD, prompt, chatId: msg.channelId })
+    if (out.timedOut) {
+      consecutiveTimeouts++
+      process.stderr.write(
+        `bridge: agent run timed out (${consecutiveTimeouts}/${MAX_CONSECUTIVE_TIMEOUTS} consecutive)\n`,
+      )
+      await msg.reply('Agent timed out. Restarting if this keeps happening.').catch(() => {})
+      if (consecutiveTimeouts >= MAX_CONSECUTIVE_TIMEOUTS) {
+        process.stderr.write(
+          `bridge: ${consecutiveTimeouts} consecutive timeouts — exiting for systemd restart\n`,
+        )
+        client.destroy()
+        process.exit(1)
+      }
+      return
+    }
+    consecutiveTimeouts = 0
+
     if (out.exitCode !== 0) {
       process.stderr.write(`bridge: agent exited ${out.exitCode}\n${out.stderr}\n`)
       await msg.reply(`Agent error (exit ${out.exitCode}). Check bridge logs.`).catch(() => {})
