@@ -14,6 +14,8 @@ export type RunAgentResult = {
   stdout: string
   stderr: string
   sessionId?: string
+  /** True when the bridge had to SIGTERM the agent for exceeding timeoutMs. */
+  timedOut: boolean
 }
 
 const SESSION_RE = /(?:chat|session)[\s_-]*id[:\s]+([a-zA-Z0-9-]+)/i
@@ -57,6 +59,7 @@ export function runCursorAgent(opts: RunAgentOptions): Promise<RunAgentResult> {
 
     let stdout = ''
     let stderr = ''
+    let timedOut = false
     child.stdout?.on('data', (b: Buffer) => {
       stdout += b.toString()
     })
@@ -65,6 +68,7 @@ export function runCursorAgent(opts: RunAgentOptions): Promise<RunAgentResult> {
     })
 
     const timer = setTimeout(() => {
+      timedOut = true
       child.kill('SIGTERM')
     }, timeoutMs)
 
@@ -79,7 +83,7 @@ export function runCursorAgent(opts: RunAgentOptions): Promise<RunAgentResult> {
       const m = SESSION_RE.exec(combined)
       const sessionId = m?.[1]
       if (sessionId) setSessionId(opts.chatId, sessionId)
-      resolve({ exitCode: code, stdout, stderr, sessionId })
+      resolve({ exitCode: code, stdout, stderr, sessionId, timedOut })
     })
   })
 }
