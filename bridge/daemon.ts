@@ -62,6 +62,32 @@ startApprovalPoller(async (channelId, text) => {
   if ('send' in ch) await ch.send(text)
 })
 
+// Post a reply without dumping into a main-channel feed. The bridge (not the
+// agent) decides where the reply lands, so this is the only place that can keep
+// replies in threads. If the inbound message is already in a thread, reply
+// there. If it arrived in a parent channel, reply inside that message's thread,
+// creating one if needed — that's what stops the bot replying in the channel
+// feed when it's @-mentioned on a top-level message (e.g. a PR announcement).
+async function postReply(msg: Message, text: string): Promise<void> {
+  if (msg.channel?.isThread?.()) {
+    await msg.reply(text)
+    return
+  }
+  let thread = msg.thread ?? null
+  if (!thread) {
+    try {
+      thread = await msg.startThread({
+        name: (msg.author.username || 'reply').slice(0, 90),
+        autoArchiveDuration: 1440,
+      })
+    } catch {
+      thread = null
+    }
+  }
+  if (thread) await thread.send(text)
+  else await msg.reply(text)
+}
+
 async function processMessage(msg: Message): Promise<void> {
   const result = await gate(client, msg)
 
@@ -91,7 +117,7 @@ async function processMessage(msg: Message): Promise<void> {
       process.stderr.write(
         `bridge: agent run timed out (${consecutiveTimeouts}/${MAX_CONSECUTIVE_TIMEOUTS} consecutive)\n`,
       )
-      await msg.reply('Agent timed out. Restarting if this keeps happening.').catch(() => {})
+      await postReply(msg, 'Agent timed out. Restarting if this keeps happening.').catch(() => {})
       if (consecutiveTimeouts >= MAX_CONSECUTIVE_TIMEOUTS) {
         process.stderr.write(
           `bridge: ${consecutiveTimeouts} consecutive timeouts — exiting for systemd restart\n`,
@@ -105,7 +131,7 @@ async function processMessage(msg: Message): Promise<void> {
 
     if (out.exitCode !== 0) {
       process.stderr.write(`bridge: agent exited ${out.exitCode}\n${out.stderr}\n`)
-      await msg.reply(`Agent error (exit ${out.exitCode}). Check bridge logs.`).catch(() => {})
+      await postReply(msg, `Agent error (exit ${out.exitCode}). Check bridge logs.`).catch(() => {})
       return
     }
 
@@ -115,7 +141,7 @@ async function processMessage(msg: Message): Promise<void> {
         process.stderr.write('bridge: agent returned empty stdout; no Discord post\n')
         return
       }
-      await msg.reply(text.slice(0, 2000)).catch(err => {
+      await postReply(msg, text.slice(0, 2000)).catch(err => {
         process.stderr.write(`bridge: reply failed: ${err instanceof Error ? err.message : String(err)}\n`)
       })
     }
