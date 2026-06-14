@@ -8,7 +8,21 @@
 
 ## TL;DR
 
-**The Claude plugin's "warmth" is not in the plugin. It is in Claude Code's `--channels` runtime** — a persistent agent loop that the plugin merely feeds. **Cursor Agent has no equivalent runtime to attach to.** So we cannot port the plugin to get warmth; we have to *build* the persistent loop ourselves, around `cursor-agent`. That is exactly what `cursor-discord-channels` is for — and today it does it the cheap way (cold spawn per message). This doc explains the asymmetry and proposes how to make it truly warm.
+The Claude Discord plugin is a **channel**: it speaks a Claude-specific protocol (`notifications/claude/channel`) that **pushes** each Discord message into Claude Code. But a channel alone is not warmth — warmth comes from the **other half**: Claude Code's `--channels` **runtime**, which *consumes* those pushes into one long-lived, warm agent session.
+
+**Cursor Agent has the channel-able side but not the consuming side.** Its MCP lets the agent *call* tools during a run; it has **no runtime that accepts an external push and wakes a warm, persistent session.** So you can't copy the plugin to get warmth — you'd be missing the half that makes it warm.
+
+**The core problem to solve: build the missing "consuming end" for Cursor Agent** — make the bridge itself the persistent runtime that keeps a warm `cursor-agent` session alive and injects pushed Discord messages into it. That is the `--channels`-for-Cursor capability this repo exists to create. Today the bridge does the cheap stand-in (cold `cursor-agent -p` per message); this doc proposes the warm version.
+
+---
+
+## The core problem (what we're solving)
+
+`notifications/claude/channel` is a **Claude-specific protocol with two ends**:
+- **Channel end** (the plugin): connects to Discord, *pushes* messages, exposes reply tools. Portable.
+- **Consuming end** (Claude Code's `--channels` runtime): accepts the pushes, injects each into **one warm, persistent agent session**, runs a turn. **Not portable — and the thing that makes it warm.**
+
+**Cursor Agent has no consuming end.** MCP = "agent calls tools during a run," not "external source pushes a message into a warm session." So the work is: **build that consuming end for `cursor-agent`** — a bridge that holds a warm `cursor-agent` session and injects messages into it, instead of cold-spawning `-p` per message.
 
 ---
 
@@ -16,13 +30,17 @@
 
 Invocation: `claude --channels plugin:discord@claude-plugins-official`
 
-Two separable pieces:
+It is a **two-ended, Claude-specific channel protocol**, and both ends matter:
 
-1. **The discord plugin (`server.ts`)** — a self-contained **MCP server** that also acts as a *channel provider*. It connects to Discord (discord.js), applies access control, delivers inbound messages to the agent as `<channel source="discord" chat_id=...>` blocks, and exposes tools: `reply`, `fetch_messages`, `react`, `create_thread`, `edit_message`, `download_attachment`.
+1. **The discord plugin (`server.ts`) — the channel end.** It is an MCP server that *also speaks a Claude-specific channel protocol* (`claude/channel`). In the code:
+   - it advertises the capability: `capabilities: { 'claude/channel': {} }` (~L462);
+   - on each inbound Discord message it **actively pushes** to Claude Code: `mcp.notification({ method: 'notifications/claude/channel', ... })` (~L1064);
+   - permission prompts flow through `notifications/claude/channel/permission` (~L982/L1029) and `…/permission_request` (~L496).
+   It also connects to Discord (discord.js), applies access control, and exposes the I/O tools (`reply`, `fetch_messages`, `react`, `create_thread`, `edit_message`, `download_attachment`). So the plugin genuinely **is the channel** — that is why it is named "Discord Channels" — not a passive adapter.
 
-2. **Claude Code's `--channels` runtime** — this is the part that matters. Claude Code runs **one long-lived agent session**. The channel provider *pushes* each incoming Discord message into that session; the agent runs one turn per message and replies via the plugin's `reply` tool. The session stays **warm** between messages: conversation in memory, prompt cache hot, no process restart.
+2. **Claude Code's `--channels` runtime — the consuming end.** Claude Code runs **one long-lived agent session** and *consumes* the channel's `notifications/claude/channel` pushes, injecting each as a turn, then replying via the plugin's `reply` tool. The session stays **warm** between messages: conversation in memory, prompt cache hot, no process restart.
 
-**The persistence is a runtime feature of Claude Code. The plugin is only the Discord I/O adapter bolted onto it.**
+**The channel does not produce warmth by itself.** Warmth comes from Claude Code's runtime *consuming* the channel's pushes into a persistent session. The plugin (channel) and Claude Code (warm consumer) are the **two halves** of the Claude-specific `claude/channel` protocol.
 
 ## How the Cursor path works today (cold)
 
@@ -35,7 +53,7 @@ Two separable pieces:
 ## Why we can't just copy the Claude plugin
 
 - **The Discord tools are portable.** The plugin's MCP tools (`reply`, etc.) would work with any MCP-capable agent, and `cursor-agent` supports MCP. (`cursor-discord-channels` already has an MCP-reply mode.)
-- **The warm loop is not portable.** It lives in Claude Code's `--channels` runtime, not in the plugin. `cursor-agent` exposes nothing equivalent:
+- **The channel protocol is not portable.** The plugin pushes messages via `notifications/claude/channel` — a **Claude-specific** protocol that only Claude Code's `--channels` runtime understands and consumes into a warm session. Copying the plugin still requires *the other half* (a runtime that consumes those pushes). `cursor-agent` is not that runtime, and exposes nothing equivalent:
   - `-p` — one-shot (spawn, run, exit)
   - interactive **TUI** — persistent, but human-driven (terminal UI, not a clean API)
   - `--resume` / `--continue` — conversation continuity, but the **process still cold-starts**
