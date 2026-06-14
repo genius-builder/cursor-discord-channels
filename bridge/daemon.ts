@@ -68,6 +68,11 @@ startApprovalPoller(async (channelId, text) => {
 // there. If it arrived in a parent channel, reply inside that message's thread,
 // creating one if needed — that's what stops the bot replying in the channel
 // feed when it's @-mentioned on a top-level message (e.g. a PR announcement).
+function replyThreadName(msg: Message): string {
+  const base = (msg.content || '').replace(/<@!?\d+>/g, '').trim()
+  return (base ? base.slice(0, 80) : `${msg.author.username} thread`) || 'thread'
+}
+
 async function postReply(msg: Message, text: string): Promise<void> {
   if (msg.channel?.isThread?.()) {
     await msg.reply(text)
@@ -76,12 +81,22 @@ async function postReply(msg: Message, text: string): Promise<void> {
   let thread = msg.thread ?? null
   if (!thread) {
     try {
-      thread = await msg.startThread({
-        name: (msg.author.username || 'reply').slice(0, 90),
-        autoArchiveDuration: 1440,
-      })
-    } catch {
-      thread = null
+      thread = await msg.startThread({ name: replyThreadName(msg), autoArchiveDuration: 1440 })
+    } catch (err) {
+      // A thread may already exist but be uncached, so startThread throws
+      // ("already has a thread"). Re-fetch the message to resolve it instead
+      // of silently dumping the reply into the channel feed.
+      try {
+        const fresh = await msg.fetch()
+        thread = fresh.thread ?? null
+      } catch {
+        thread = null
+      }
+      if (!thread) {
+        process.stderr.write(
+          `bridge: postReply could not open a thread (${err instanceof Error ? err.message : String(err)}); replying in channel\n`,
+        )
+      }
     }
   }
   if (thread) await thread.send(text)
