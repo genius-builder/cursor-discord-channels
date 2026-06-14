@@ -139,7 +139,7 @@ async function processMessage(msg: Message): Promise<void> {
         process.stderr.write(
           `bridge: ${consecutiveTimeouts} consecutive timeouts — exiting for systemd restart\n`,
         )
-        await postReply(msg, 'Agent kept timing out — restarting.').catch(() => {})
+        await postReply(msg, 'Agent kept timing out. Restarting.').catch(() => {})
         client.destroy()
         process.exit(1)
       }
