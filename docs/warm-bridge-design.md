@@ -11,7 +11,7 @@ We want Jackie (Cursor Agent) to be **warm** on Discord like the Claude Code age
 
 > An earlier draft of this doc concluded cursor-agent had no such mode and proposed PTY-driving the interactive TUI. That was an under-researched error. `cursor-agent acp` is real (verified on the binary, v2026.06.12) and is the clean path. The PTY approach is discarded.
 
-**The build:** a bridge that is an **ACP client** — it listens to Discord, keeps one warm `cursor-agent acp` session per channel, and forwards each Discord message as an ACP prompt. We borrow the bridge architecture from existing OSS and plumb in the ACP client.
+**The build:** a bridge that is an **ACP client** — it listens to Discord, keeps **one warm, shared `cursor-agent acp` session** (Jackie is a long-running assistant, so context is shared across all channels, channel-aware, like Claude Code `--channels` — not isolated per channel), and forwards each Discord message as an ACP prompt tagged with its source. We borrow the bridge skeleton from existing OSS and plumb in the ACP client.
 
 ---
 
@@ -45,12 +45,17 @@ Two classes of existing OSS bridge:
 - **Reuse:** Discord listener, per-channel `SessionManager`, message chunking, and our existing access-control/`trustedBots` gate from `cursor-discord-channels`.
 - **Write new:** the ACP client adapter — the JSON-RPC/stdio handshake and `session/prompt` calls against `cursor-agent acp`. This is the ~20% that is genuinely new; the skeleton is the ~80% we borrow.
 
-## Design: the ACP-client bridge
+## Design: the ACP-client bridge (one shared, channel-aware session)
 
-- The bridge talks to `cursor-agent acp` over JSON-RPC/stdio (one persistent process; per-channel ACP sessions inside it, or per-channel processes if isolation requires).
-- `SessionManager`: `channelId → ACP sessionId`. New channel → `session/new`. Incoming message → `session/prompt`. Stream the response back to Discord (chunked to the 2000-char limit).
+Jackie is a **long-running assistant**, not a disposable per-task agent. A coding bridge like `discord-opencode-bridge` isolates one session per channel because there each channel is an independent, throwaway project — isolation prevents cross-project context bleed and keeps each task's context bounded. Jackie is the opposite: one persistent companion who should remember everything across every channel (tell him something in the debrief thread, he still knows it when you ping in podcast-replay). So we use **one shared session with full cross-channel memory** — exactly how Claude Code `--channels` works (one persistent session fed by all channels, each message tagged with its source).
+
+- **One warm `cursor-agent acp` process holding one shared session.** Every Discord message, from any channel or thread, is sent into that same session via `session/prompt`.
+- **Each message is wrapped with source metadata** — a `<channel source="discord" chat_id=… thread_id=… user=…>`-style header (mirroring the Claude plugin). So the agent has coherent global context *and* knows where each message came from, where to reply, and which topic to follow.
+- **Reply routing:** the bridge tracks which channel/thread triggered the current turn and routes the agent's reply back there.
 - Access control: reuse the existing `cursor-discord-channels` gate (allowlist / `trustedBots`).
-- Watchdog: per-session health; restart a wedged session (the existing consecutive-timeout watchdog applies per session).
+- Watchdog: health-check the shared session; restart it if wedged (existing consecutive-timeout watchdog).
+- Context growth is managed by cursor-agent's own compaction (same as Claude Code). Turns are serial within the one session (same as `--channels`).
+- *(Future option: opt-in isolated session for a specific heavy/autonomous task that shouldn't be polluted by unrelated chatter. Default is shared.)*
 
 ## Phase 1 (MVP) — prove the pipe
 
